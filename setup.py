@@ -5,7 +5,7 @@ def count_directories(root):
     :return: number of folders
     '''
     from glob import glob
-    return len(glob('{}/*/'))
+    return len(glob('{}/*/'.format(root)))
 
 
 def mkdir(ndirectory, baseroot):
