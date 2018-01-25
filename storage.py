@@ -59,7 +59,6 @@ class DataH5py:
             if isinstance(item, (int, np.unicode)):
                 item = str(item)
             if isinstance(item, (np.ndarray, np.int64, np.float64, int, str, bytes)):
-
                 h5file['{}{}'.format(path, key)] = item
 
             elif isinstance(item, AverageMeter):
@@ -73,6 +72,13 @@ class DataH5py:
             elif isinstance(item, dict):
                 self.recursively_save_dict_contents_to_group(h5file,
                                                              path + key + '/', item)
+
+            elif isinstance(item, (Container, Bunch)):
+                self.recursively_save_dict_contents_to_group(h5file,
+                                                             path + key + '/', item.as_dict())
+
+            elif item is None:
+                pass
             else:
                 raise ValueError('Cannot save {}:{} type'.format(key, type(item)))
 
@@ -114,6 +120,9 @@ class Bunch(dict):
     def __dir__(self):
         return self.keys()
 
+    def as_dict(self):
+        return self.__dict__
+
     def __getattr__(self, key):
         try:
             return self[key]
@@ -140,8 +149,14 @@ class Container(object):
             else:
                setattr(self, key, Container(value) if isinstance(value, dict) else value)
 
+    def as_dict(self):
+        return self.__dict__
+
     def keys(self):
         return list(self.__dict__.keys())
+
+    def items(self):
+        return list(self.__dict__.items())
 
 
 if __name__ == '__main__':

@@ -24,6 +24,10 @@ class CronoMeter(object):
     def get_step(self):
         return self.format_time(measure=self.step)
 
+    def from_last(self):
+        import time
+        return time.time() - self.previous
+
     def get_avg(self):
         return self.format_time(measure=self.avg)
 
@@ -70,7 +74,6 @@ class CronoMeter(object):
 class AverageMeter(object):
     """Computes and stores the average and current value"""
     def __init__(self):
-
         self.reset()
 
     def max(self):
@@ -108,6 +111,10 @@ class AverageMeter(object):
         self.list = [0.]
         self.flag = True
 
+
+    def value(self):
+        return self.val
+
     def update(self, val, n=1):
         self.val = val
         self.sum += val * n
@@ -139,6 +146,14 @@ class AverageMeter(object):
             raise 'Error saving {}'.format(fname)
 
 
+def generate_metric_list(metric_list):
+    from util.storage import Container
+    return Container({'train': { cname: AverageMeter() for cname in metric_list},
+                      'val': {cname: AverageMeter() for cname in metric_list},
+                      'test': {'seen': {cname: AverageMeter() for cname in metric_list},
+                               'unseen': {cname: AverageMeter() for cname in metric_list}}})
+
+
 class Print(object):
     def __init__(self):
         pass
@@ -159,3 +174,116 @@ def label2hot(y, dim=False):
 def hot2label(y):
     return y.argmax(axis=1)
 
+
+def garbage_checklist(checklist, cname, nmax=10, ctype='min', verbose=False):
+    """
+    garbage_checklist: this method aims to clean the folder where the models are being saved.
+    This method keeps the harddrive clean of undeserible models.
+
+    :param checklist: dictionary {"current":[{'file': '', cname: float(), 'epoch': int{}}]
+                                  "deleted":[{'file': '', cname: float(), 'epoch': int{}}]}
+    :param cname: name of the criteria parameter
+    :param nmax: number of models allowed to be saved on disk
+    :param ctype: criteria type, min: minimization or max: maximization
+
+    :return: True: if process correctly, False if some strange behavior happned;
+
+
+    Example:
+    --------
+
+    checklist = {"current":[{'file': '1', 'cname': 1, 'epoch': 1, 'deletable':True},
+                            {'file': '2', 'cname': 2, 'epoch': 2, 'deletable':False},
+                            {'file': '3', 'cname': 3, 'epoch': 3, 'deletable':True},
+                            {'file': '4', 'cname': 4, 'epoch': 4, 'deletable':False},
+                            {'file': '5', 'cname': 5, 'epoch': 5, 'deletable':True},
+                            {'file': '6', 'cname': 6, 'epoch': 6, 'deletable':False}]}
+    garbage_model(checklist, 'cname', nmax=3)
+                        
+    """
+    import shutil
+    try:
+        if verbose:
+            print(':: GargabageModel - Initializing garbage collector... ')
+            print(':: GargabageModel - length list: {}'.format(len(checklist['current'])))
+        from os import remove
+        current_checkpoints = []
+        for value in checklist['current']:
+            if value['deletable']:
+                current_checkpoints.append(value)
+
+        if len(current_checkpoints) > nmax:
+            if ctype == 'min':
+                current_checkpoints.sort(key=lambda x: x[cname])
+            elif ctype == 'max':
+                current_checkpoints.sort(key=lambda x: x[cname], reverse=True)
+            else:
+                raise ":: GargabageModel - Not implemented: criteria == {}".format(ctype)
+
+            if verbose:
+                print(':: GargabageModel - deleting model: {}'.format(checklist['current'][-1]['file']))
+            delete_item = current_checkpoints[-1]
+
+            # Remove model from folder
+            try:
+                remove(delete_item['file'])
+            except:
+
+                shutil.rmtree(delete_item['file'], ignore_errors=True)
+
+            checklist['deleted'].append(delete_item)
+            for key, value in enumerate(checklist['current']):
+                if delete_item['epoch'] == value['epoch']:
+                    key_delete = key
+            del(delete_item, checklist['current'][key_delete])
+
+            return checklist
+
+
+        else:
+            if verbose:
+                print(':: GargabageModel - Minimum number of models not reached yet')
+
+            return checklist
+
+    except Exception as e:
+        import sys, traceback
+        print(':: Exception::GargabageModel - {}'.format(e))
+        traceback.print_exc(file=sys.stdout)
+
+
+def checkpoint_assessment(count_inertia, history=tuple(), max_inertia=3, min_criteria=1., n_element=4):
+    """
+    checkpoint_assessment: this function assess if the code should save the checkpoint
+    :param count_inertia: number of previous inertia
+    :param history: lists that should be assess
+    :param max_inertia: number maximum of inertia possible
+    :param min_criteria: number min of criteria to be assess
+    :param n_element: number of elements minimum to assess
+    
+    :return: dictkey{'save': Bool, 'inertia': Int, 'interrupt': Bool}
+    """
+
+    assert len(history) >= 1
+
+    if history[0][1].shape[0] >= n_element:
+        criterias = 0
+        for ctype, metric, name in history:
+            l_element = metric[-n_element:].shape[0] - 1
+            if ctype is 'max':
+                if metric[-n_element:].argmax() == l_element:
+                    criterias += 1
+            elif ctype is 'min':
+                if metric[-n_element:].argmax() == l_element:
+                    criterias += 1
+
+        if criterias >= min_criteria:
+            return {'save': True, 'inertia': 0, 'interrupt': False}
+
+        elif count_inertia > max_inertia:
+            return {'save': True, 'inertia': count_inertia + 1, 'interrupt': True}
+        else:
+            return {'save': True, 'inertia': count_inertia, 'interrupt': True}
+
+    else:
+        return {'save': True, 'inertia': 0, 'interrupt': False}

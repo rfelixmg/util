@@ -62,7 +62,7 @@ def mkexp(baseroot, options, bname, sideinfo=None,
                            bname)
     if isinstance(sideinfo, list):
         for sinfo in sideinfo:
-            fname = '{}_[{}:{}]'.format(fname, sinfo, options.as_dict()[sinfo])
+            fname = '{}_{}-{}'.format(fname, sinfo, options.as_dict()[sinfo])
 
     curroot = mkdir(ndirectory=fname, baseroot=baseroot)
     mkdict(directories=subdirectories, baseroot=curroot)

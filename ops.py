@@ -91,3 +91,9 @@ def rlinear(input_, output_size, scope=None):
         bias = tf.get_variable("bias", [output_size])
 
     return tf.matmul(input_, matrix) + bias
+
+
+def get_available_gpus():
+    from tensorflow.python.client import device_lib
+    local_device_protos = device_lib.list_local_devices()
+    return [x.name for x in local_device_protos if x.device_type == 'GPU']
