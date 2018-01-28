@@ -14,3 +14,8 @@ def accuracy_per_class(predict_label, true_label, classes):
         if idx.sum() != 0:
             acc_per_class.append(sum(true_label[idx] == predict_label[idx]) / float(idx.sum()))
     return array(acc_per_class).mean()
+
+
+def h_mean(a, b):
+    from numpy import float
+    return 2*a*b/float(a+b)

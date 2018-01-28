@@ -160,7 +160,6 @@ class Print(object):
 
     def print_inline(self, x):
         from sys import stdout
-        from time import sleep
         stdout.write('\r{}               '.format(x))
         stdout.flush()
 
