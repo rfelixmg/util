@@ -70,30 +70,37 @@ def lrelu(x, leak=0.2, name="lrelu"):
     return tf.maximum(x, leak*x)
 
 
-def linear(input_, output_size, scope=None, stddev=0.01, bias_start=0.0, with_w=False):
+def linear(input_, output_size, scope=None, stddev=0.01, with_w=False):
     shape = input_.get_shape().as_list()
 
     with tf.variable_scope(scope or "Linear"):
         matrix = tf.get_variable("Matrix", [shape[1], output_size], tf.float32,
                                  initializer=tf.truncated_normal_initializer(stddev=stddev))
         bias = tf.get_variable("bias", [output_size],
-                               initializer=tf.zeros_initializer())
+                               initializer=tf.constant_initializer(0.9999))
         if with_w:
             return tf.nn.bias_add(tf.matmul(input_, matrix), bias), matrix, bias
         else:
             return tf.nn.bias_add(tf.matmul(input_, matrix), bias)
 
-def rlinear(input_, output_size, scope=None):
-    shape = input_.get_shape().as_list()
 
-    with tf.variable_scope(scope or "Linear"):
-        matrix = tf.get_variable("Matrix", [shape[1], output_size], tf.float32)
-        bias = tf.get_variable("bias", [output_size])
-
-    return tf.matmul(input_, matrix) + bias
+def linear_layer(_input, _output_dim, name, stddev=0.001, is_trainable=True, with_params=False):
+    input_dim = _input.get_shape().as_list()[1]
+    weights = tf.get_variable(name='{}_W'.format(name), shape=[input_dim, _output_dim],
+                              dtype=tf.float32, initializer=tf.truncated_normal_initializer(stddev=stddev),
+                              trainable=is_trainable)
+    bias = tf.get_variable('{}_b'.format(name), [_output_dim],
+                           initializer=tf.constant_initializer(0.9999),
+                           trainable=is_trainable)
+    if with_params:
+        return tf.nn.bias_add(tf.matmul(_input, weights), bias), {'{}_W'.format(name): weights,
+                                                                  '{}_b'.format(name): bias}
+    else:
+        return tf.nn.bias_add(tf.matmul(_input, weights), bias)
 
 
 def get_available_gpus():
     from tensorflow.python.client import device_lib
     local_device_protos = device_lib.list_local_devices()
     return [x.name for x in local_device_protos if x.device_type == 'GPU']
+

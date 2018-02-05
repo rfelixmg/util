@@ -174,6 +174,29 @@ def hot2label(y):
     return y.argmax(axis=1)
 
 
+def id2label(x, data):
+    """
+    id2label given a vector, transform based on a dict
+    :param x: vector
+    :param data: dict{int id: int label}
+    :return: 
+    """
+    return np.array([data[kk] for kk in x]).astype(np.int)
+
+
+def list_ids(x, shuffle=True):
+    """
+    list ids: get a matrix and return a shuffle list of positions
+    :param x: 
+    :param shuffle: 
+    :return: 
+    """
+    dim_x = x.shape[0]
+    ids_ = np.array(range(dim_x))
+    if shuffle:
+        np.random.shuffle(ids_)
+    return ids_, dim_x
+
 def garbage_checklist(checklist, cname, nmax=10, ctype='min', verbose=False):
     """
     garbage_checklist: this method aims to clean the folder where the models are being saved.

@@ -19,3 +19,12 @@ def accuracy_per_class(predict_label, true_label, classes):
 def h_mean(a, b):
     from numpy import float
     return 2*a*b/float(a+b)
+
+
+def stats(x):
+    import numpy as np
+    return {'max': np.max(x),
+            'min': np.min(x),
+            'mean': np.mean(x),
+            'var': np.var(x),
+            }

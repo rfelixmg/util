@@ -149,8 +149,14 @@ class Container(object):
             else:
                setattr(self, key, Container(value) if isinstance(value, dict) else value)
 
-    def as_dict(self):
-        return self.__dict__
+    # def as_dict(self):
+    #     return self.__dict__
+
+    def as_dict(self, dtype=None):
+        if dtype:
+            return {dtype(key): dtype(value) for key, value in self.__dict__.items()}
+        else:
+            return self.__dict__
 
     def keys(self):
         return list(self.__dict__.keys())
