@@ -18,6 +18,11 @@ def load(root, dtype='h5py'):
 
     return dataset, knn
 
+def load_h5(root):
+    from util.storage import DataH5py, Container
+    data = DataH5py().load_dict_from_hdf5(root)
+
+    return Container(data)
 
 def normalize(x, ord=1,axis=-1):
     '''

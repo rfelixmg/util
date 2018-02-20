@@ -309,3 +309,11 @@ def checkpoint_assessment(count_inertia, history=tuple(), max_inertia=3, min_cri
 
     else:
         return {'save': True, 'inertia': 0, 'interrupt': False}
+
+
+def find_config(root):
+    from os import listdir
+    for tfile in listdir(root):
+        if tfile.startswith('configuration_'):
+            return '{}/{}'.format(root, tfile)
+    return False

@@ -84,7 +84,8 @@ def linear(input_, output_size, scope=None, stddev=0.01, with_w=False):
             return tf.nn.bias_add(tf.matmul(input_, matrix), bias)
 
 
-def linear_layer(_input, _output_dim, name, stddev=0.001, is_trainable=True, with_params=False):
+def linear_layer(_input, _output_dim, name, stddev=0.01, is_trainable=True, with_params=False):
+    from tensorflow.contrib.layers.python.layers.initializers import xavier_initializer
     input_dim = _input.get_shape().as_list()[1]
     weights = tf.get_variable(name='{}_W'.format(name), shape=[input_dim, _output_dim],
                               dtype=tf.float32, initializer=tf.truncated_normal_initializer(stddev=stddev),
