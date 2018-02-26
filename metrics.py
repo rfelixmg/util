@@ -28,3 +28,48 @@ def stats(x):
             'mean': np.mean(x),
             'var': np.var(x),
             }
+
+
+def inner_product(x, y):
+    from numpy import newaxis
+    return (x[:, newaxis] * y).sum(2)
+
+
+def inner_prediction(y_pred, y_true, _score=False):
+    """
+    
+    :param y_pred: prediction
+    :param y_true: class dictionary 
+    :param _score: return inner product values?
+    :return:  y_pred: argmax of scores range([0, y_true.shape[0]])
+    """
+    from numpy import array
+    y_score = inner_product(y_pred, y_true)
+    y_pred = y_score.argmax(axis=1)
+    score = array([y_score[key, id] for key, id in enumerate(y_pred)])
+    if _score:
+        return y_pred, score, y_score
+    else:
+        return y_pred
+
+
+def euclidean_distance(x, y):
+    from numpy import newaxis, sum, sqrt
+    return sqrt(((x[:, newaxis] - y) ** 2).sum(2))
+
+def euclidean_prediction(y_pred, y_true, _score=False):
+    """
+
+    :param y_pred: prediction
+    :param y_true: class dictionary 
+    :param _score: return inner product values?
+    :return:  y_pred: argmin of scores range([0, y_true.shape[0]])
+    """
+    from numpy import array
+    y_score = euclidean_distance(y_pred, y_true)
+    y_pred = y_score.argmin(axis=1)
+    score = array([y_score[key, id] for key, id in enumerate(y_pred)])
+    if _score:
+        return y_pred, score, y_score
+    else:
+        return y_pred

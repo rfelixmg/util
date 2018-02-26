@@ -88,6 +88,10 @@ class AverageMeter(object):
         assert len(self.list) > 0
         return np.array(self.list).mean()
 
+    def var(self):
+        assert len(self.list) > 0
+        return np.array(self.list).var()
+
     def summary(self):
         return '(min: {:.4g} | mean: {:.4g} | max: {:.4g} | val: {:.4g})'.format(self.min(),
                                                                                  self.mean(),
@@ -148,10 +152,11 @@ class AverageMeter(object):
 
 def generate_metric_list(metric_list):
     from util.storage import Container
-    return Container({'train': { cname: AverageMeter() for cname in metric_list},
+    return Container({'train': {cname: AverageMeter() for cname in metric_list},
                       'val': {cname: AverageMeter() for cname in metric_list},
                       'test': {'seen': {cname: AverageMeter() for cname in metric_list},
-                               'unseen': {cname: AverageMeter() for cname in metric_list}}})
+                               'unseen': {cname: AverageMeter() for cname in metric_list}},
+                      'hmean': AverageMeter()})
 
 
 class Print(object):
