@@ -229,6 +229,8 @@ def garbage_checklist(checklist, cname, nmax=10, ctype='min', verbose=False):
                         
     """
     import shutil
+    from os import symlink
+    import os
     try:
         if verbose:
             print(':: GargabageModel - Initializing garbage collector... ')
@@ -250,6 +252,16 @@ def garbage_checklist(checklist, cname, nmax=10, ctype='min', verbose=False):
             if verbose:
                 print(':: GargabageModel - deleting model: {}'.format(checklist['current'][-1]['file']))
             delete_item = current_checkpoints[-1]
+            sym_item = current_checkpoints[0]
+            try:
+                remove('{}/best_model'.format(os.path.dirname(sym_item['file'][:-1])))
+            except:
+                print(':: Removing Symbolic link fail!')
+            try:
+                symlink(sym_item['file'], '{}/best_model'.format(os.path.dirname(sym_item['file'][:-1])))
+            except:
+                print(':: Creating Symbolic link fail!')
+
 
             # Remove model from folder
             try:
