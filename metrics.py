@@ -73,3 +73,8 @@ def euclidean_prediction(y_pred, y_true, _score=False):
         return y_pred, score, y_score
     else:
         return y_pred
+
+
+def tf_euclidean(x, y):
+    from numpy import newaxis, sum, sqrt
+    return sqrt(((x[:, newaxis] - y) ** 2).sum(2))
