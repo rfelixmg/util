@@ -40,6 +40,9 @@ class Json(object):
 
 class DataH5py:
     def __init__(self):
+        self.supported_types = (np.ndarray, np.int, np.float,
+                                np.int32, np.float32, np.int64,
+                                np.float64, int, str, bytes)
         pass
 
     def save_dict_to_hdf5(self, dic, filename):
@@ -58,9 +61,15 @@ class DataH5py:
                 key = str(key)
             if isinstance(item, (int, np.unicode)):
                 item = str(item)
-            if isinstance(item, (np.ndarray, np.int64, np.float64, int, str, bytes)):
-                h5file['{}{}'.format(path, key)] = item
-
+            if isinstance(item, self.supported_types):
+                if isinstance(item, np.ndarray):
+                        if isinstance(item[0], np.unicode):
+                            h5file.create_dataset('{}{}'.format(path, key),
+                                              data=np.array(item, dtype='S'))
+                        else:
+                            h5file['{}{}'.format(path, key)] = item
+                else:
+                    h5file['{}{}'.format(path, key)] = item
             elif isinstance(item, AverageMeter):
                 h5file['{}{}'.format(path, key)] = item.get_list()
 
@@ -165,10 +174,31 @@ class Container(object):
         return list(self.__dict__.items())
 
 
+
+def hdf2mat(src_, dst_):
+    from scipy.io import savemat
+    data = DataH5py().load_dict_from_hdf5(src_)
+
+    for key in data.keys():
+        savemat('{}/{}'.format(dst_, key), {key: data[key]})
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
     print('-'*100)
     print(':: Testing file: {}'.format(__file__))
     print('-'*100)
+
+    # _dir = '/media/hdd_2tb/scientific/experiments/eccv18/cub/fclswgan/gan/batch_001/0000_TEST_070318_202809_batch_size-64/data'
+    # _dir = '/media/hdd_2tb/scientific/experiments/eccv18/flo/fclswgan/gan/batch_001/0000_TEST_150318_004004_batch_size-64/data'
+    _dir = '/media/hdd_2tb/scientific/experiments/eccv18/awa1/fclswgan/gan/batch_001/0000_TEST_220218_163913_batch_size-64/data'
+
+    hdf2mat('{}/data.h5'.format(_dir), _dir)
 
     # data = DataH5py().load_dict_from_hdf5('/var/scientific/data/eccv18/awa1/data.h5')
     # d = Container(data)

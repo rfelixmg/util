@@ -150,13 +150,29 @@ class AverageMeter(object):
             raise 'Error saving {}'.format(fname)
 
 
-def generate_metric_list(metric_list):
+def generate_result_list(split_val=False):
+    return {'train':{},
+            'val':{'seen':{},
+                   'unseen':{}},
+            'test': {'seen': {},
+                    'unseen': {}}}
+
+def generate_metric_list(metric_list, split_val=False):
     from util.storage import Container
-    return Container({'train': {cname: AverageMeter() for cname in metric_list},
-                      'val': {cname: AverageMeter() for cname in metric_list},
-                      'test': {'seen': {cname: AverageMeter() for cname in metric_list},
-                               'unseen': {cname: AverageMeter() for cname in metric_list}},
-                      'hmean': AverageMeter()})
+    if split_val:
+        return Container({'train': {cname: AverageMeter() for cname in metric_list},
+                          'val': {'seen': {cname: AverageMeter() for cname in metric_list},
+                                   'unseen': {cname: AverageMeter() for cname in metric_list}},
+                          'test': {'seen': {cname: AverageMeter() for cname in metric_list},
+                                   'unseen': {cname: AverageMeter() for cname in metric_list}},
+                          'hmean': {'val': AverageMeter(),
+                                    'test': AverageMeter(),}})
+    else:
+        return Container({'train': {cname: AverageMeter() for cname in metric_list},
+                          'val': {cname: AverageMeter() for cname in metric_list},
+                          'test': {'seen': {cname: AverageMeter() for cname in metric_list},
+                                   'unseen': {cname: AverageMeter() for cname in metric_list}},
+                          'hmean': AverageMeter()})
 
 
 class Print(object):
@@ -334,3 +350,43 @@ def find_config(root):
         if tfile.startswith('configuration_'):
             return '{}/{}'.format(root, tfile)
     return False
+
+
+def save_checkpoint(model, checkpoint_dir, history, value, epoch, epochs, options, checklist, check_metric, ctype='min'):
+    # TODO: is really necessary to save 200mb per checkpoint?
+    if (epoch % options.checkpoint == 0) or (epoch + 2 > epochs):
+        if options.savepoints:
+            if epoch in options.savepoints:
+                print(':: Model save point in savepoints {}'.format(options.savepoints))
+                model.save(checkpoint_dir, epoch)
+                checklist['current'].append({'file': checkpoint_dir,
+                                             check_metric: value,
+                                             'epoch': epoch,
+                                             'deletable': False})
+            else:
+                checkpoint_info = checkpoint_assessment(0, history=history, max_inertia=options.checkpoints_inertia, min_criteria=1., n_element=5)
+
+                if checkpoint_info['save']:
+                    model.save(checkpoint_dir, epoch)
+                    checklist['current'].append({'file': checkpoint_dir,
+                                                 check_metric: value,
+                                                 'epoch': epoch,
+                                                 'deletable': True})
+                    checklist = garbage_checklist(checklist=checklist, cname=check_metric, ctype=ctype,
+                                                  nmax=options.checkpoints_max)
+        else:
+            checkpoint_info = checkpoint_assessment(0, history=history, max_inertia=options.checkpoints_inertia,
+                                                    min_criteria=1., n_element=5)
+
+            if checkpoint_info['save']:
+                model.save(checkpoint_dir, epoch)
+                checklist['current'].append({'file': checkpoint_dir,
+                                             check_metric: value,
+                                             'epoch': epoch,
+                                             'deletable': True})
+                checklist = garbage_checklist(checklist=checklist, cname=check_metric, ctype=ctype,
+                                              nmax=options.checkpoints_max)
+
+            # TODO: add inertia interruption to this models
+            #if checkpoint_info['interrupt']:
+    return checklist

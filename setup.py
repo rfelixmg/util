@@ -49,7 +49,7 @@ def mkdict(directories, baseroot):
 def mkexp(baseroot, options, bname, sideinfo=None,
           subdirectories=['checkpoint','results', 'source']):
     '''
-    mkexp create a folder for experiments
+    mkexp create a folder for experiments_eccv18
     
     :param baseroot: 
     :param options: 

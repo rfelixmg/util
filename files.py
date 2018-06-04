@@ -48,6 +48,29 @@ def list_directories(root, join=True):
 
     return sort(folders)
 
+def list_files(root, join=True, obj_type=None):
+    import os
+    from numpy import sort
+
+    files = os.listdir('{}/'.format(root))
+    out_files = []
+    for obj in files:
+        if os.path.isdir(os.path.join(root, obj)) is False:
+
+            if (obj_type is None):
+                if join:
+                    out_files.append(os.path.join(root, obj))
+                else:
+                    out_files.append(obj)
+
+            elif join:
+                out_files.append(os.path.join(root, obj)) if obj.endswith('.{}'.format(obj_type)) else False
+            else:
+                out_files.append(obj) if obj.endswith('.{}'.format(obj_type)) else False
+
+    return sort(out_files)
+
+
 if __name__ == '__main__':
     print('-' * 100)
     print(':: Testing file: {}'.format(__file__))

@@ -1,3 +1,15 @@
+def cross_entropy(y_prob,y):
+    """
+    X is the output from fully connected layer (num_examples x num_classes)
+    y is labels (num_examples x 1)
+    """
+    from numpy import log, sum
+    m = y.shape[0]
+    p = y_prob
+    log_likelihood = -log(p[range(m),y])
+    loss = sum(log_likelihood) / m
+    return loss
+
 def accuracy_per_class(predict_label, true_label, classes):
     '''
     
@@ -13,6 +25,8 @@ def accuracy_per_class(predict_label, true_label, classes):
         idx = true_label == classes[i]
         if idx.sum() != 0:
             acc_per_class.append(sum(true_label[idx] == predict_label[idx]) / float(idx.sum()))
+    if len(acc_per_class) == 0:
+        return 0.
     return array(acc_per_class).mean()
 
 
@@ -75,6 +89,74 @@ def euclidean_prediction(y_pred, y_true, _score=False):
         return y_pred
 
 
-def tf_euclidean(x, y):
-    from numpy import newaxis, sum, sqrt
-    return sqrt(((x[:, newaxis] - y) ** 2).sum(2))
+def tf_pairwise_euclidean_distance(x, y):
+    import tensorflow as tf
+    size_x = tf.shape(x)[0]
+    size_y = tf.shape(y)[0]
+    xx = tf.expand_dims(x, -1)
+    xx = tf.tile(xx, tf.stack([1, 1, size_y]))
+
+    yy = tf.expand_dims(y, -1)
+    yy = tf.tile(yy, tf.stack([1, 1, size_x]))
+    yy = tf.transpose(yy, perm=[2, 1, 0])
+
+    diff = xx - yy
+    square_diff = tf.square(diff)
+
+    square_dist = tf.reduce_sum(square_diff, 1)
+
+    return square_dist
+
+
+def entropy(x, axis=1):
+    from numpy import sum, log2
+    return -sum(x* log2(x), axis)
+
+def get_tau(x, percentile):
+    return (x.max()- x.min()) * percentile
+
+def intersection(a,b):
+    from numpy import array
+    ans = array([x for x in set(a).intersection(b)])
+    return ans
+
+
+
+def histogram(x, bins=100, npoints=500, smooth=False):
+    from numpy import histogram, r_, linspace, sort, ones
+    from scipy.interpolate import interp1d
+
+    nsamples = x.shape[0]
+
+    if(nsamples > bins):
+        _qt, _var = histogram(x, bins)
+        _qt = r_[0., _qt, 0.]
+        _qt = (_qt / nsamples) * 100
+        _var = r_[_var[0], _var[1:], _var[-1]]
+
+        if smooth:
+            x, y = smoother(_var, _qt, smooth, npoints)
+            # xnew = linspace(_var.min(), _var.max(), _var.shape[0])
+            # smoother = interp1d(xnew, _qt, kind=smooth)
+            # x = linspace(_var.min(), _var.max(), npoints)
+            # y = smoother(x)
+        else:
+            x = _var
+            y = _qt
+    else:
+        sort(x)
+        y = ones(x.shape[0])
+
+
+    return x, y
+
+
+def smoother(_x, _y, smooth='cubic', npoints=500):
+    from scipy.interpolate import interp1d
+    from numpy import linspace
+
+    xnew = linspace(_x.min(), _x.max(), _x.shape[0])
+    smoother_func = interp1d(xnew, _y, kind=smooth)
+    x = linspace(_x.min(), _x.max(), npoints)
+    y = smoother_func(x)
+    return x, y

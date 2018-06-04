@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def suggest_sensible_lengthscale(x_data):
     from scipy.spatial import distance
     lengthscale = np.mean(distance.pdist(x_data, 'euclidean'))
@@ -14,6 +15,8 @@ def suggest_good_intial_inducing_points(x_data, num_inducing):
     new_inducing = kmeans.cluster_centers_
     print(":: ending k-means")
     return new_inducing
+
+
 
 
 def process_validation(dataset, datafake, options):
