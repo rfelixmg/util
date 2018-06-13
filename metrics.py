@@ -1,3 +1,8 @@
+def softmax(x):
+    import numpy as np
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum(axis=0)
+
 def cross_entropy(y_prob,y):
     """
     X is the output from fully connected layer (num_examples x num_classes)
@@ -9,6 +14,26 @@ def cross_entropy(y_prob,y):
     log_likelihood = -log(p[range(m),y])
     loss = sum(log_likelihood) / m
     return loss
+
+def normalize(x, ord=1,axis=-1):
+    '''
+    Normalize is a function that performs unit normalization
+    Please, see http://mathworld.wolfram.com/UnitVector.html
+    :param x: Vector
+    :return: normalized x
+    '''
+    from numpy import atleast_2d, linalg, float
+    return (atleast_2d(x) / atleast_2d(linalg.norm(atleast_2d(x), ord=ord, axis=axis)).T).astype(float)
+
+
+def scaler(x, rg=(0.,1.), seed=False):
+    from numpy import min, max, array
+    if seed:
+        return array((((x - seed[0]) / (seed[1] - seed[0])) * (rg[1] - rg[0])) + rg[0])
+    else:
+        return array((((x - min(x)) / (max(x) - min(x))) * (rg[1] - rg[0])) + rg[0])
+
+
 
 def accuracy_per_class(predict_label, true_label, classes):
     '''
@@ -111,6 +136,11 @@ def tf_pairwise_euclidean_distance(x, y):
 def entropy(x, axis=1):
     from numpy import sum, log2
     return -sum(x* log2(x), axis)
+
+def sigmoid(x):
+    import numpy as np
+    return 1 / (1 + np.exp(-x))
+
 
 def get_tau(x, percentile):
     return (x.max()- x.min()) * percentile
