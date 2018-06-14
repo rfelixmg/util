@@ -148,24 +148,38 @@ def join_datasets(dataset, datafake, val_split=0.):
                                                           datafake.Y,
                                                           test_size=val_split,
                                                           random_state=42)
-    # ys_train = np.atleast_2d(ys_train).T
-    # ys_val = np.atleast_2d(ys_val).T
-    # yu_train = np.atleast_2d(yu_train).T
-    # yu_val = np.atleast_2d(yu_val).T
+    os_train = np.ones(XS_train.shape[0])
+    ou_train = np.ones(XU_train.shape[0])
+    
+    os_val = np.ones(XS_val.shape[0])
+    ou_val = np.ones(XU_val.shape[0])
 
     dataset.train.X = np.r_[XS_train, XU_train]
     dataset.train.Y = np.r_[ys_train, yu_train]
+    dataset.train.O = np.r_[os_train, ou_train]
+
     dataset.train.seen = Container({'X': XS_train,
-                                    'Y': ys_train})
+                                    'Y': ys_train,
+                                    'O': os_train})
     dataset.train.unseen = Container({'X': XU_train,
-                                      'Y': yu_train})
+                                      'Y': yu_train,
+                                      'O': ou_train})
 
     dataset.val.X = np.r_[XS_val, XU_val]
     dataset.val.Y = np.r_[ys_val, yu_val]
+    dataset.val.O = np.r_[os_val, ou_val]
+
     dataset.val.seen = Container({'X': XS_val,
-                                  'Y': ys_val})
+                                  'Y': ys_val,
+                                'O': os_val})
     dataset.val.unseen = Container({'X': XU_val,
-                                    'Y': yu_val})
+                                    'Y': yu_val,
+                                    'O': ou_val})
+
+    #test
+    dataset.test.seen.O = np.ones(dataset.test.seen.Y.shape[0])
+    dataset.test.unseen.O = np.zeros(dataset.test.unseen.Y.shape[0])
+
     dataset.n_classes = np.max([dataset.test.seen.Y.max(), dataset.test.unseen.Y.max()])
 
     return dataset

@@ -40,9 +40,10 @@ class Json(object):
 
 class DataH5py:
     def __init__(self):
-        self.supported_types = (np.ndarray, np.int, np.float,
-                                np.int32, np.float32, np.int64,
-                                np.float64, int, str, bytes)
+        self.supported_types = (np.ndarray, int, str, bytes,
+                                np.int, np.int8, np.int16, np.int32, np.int64,
+                                np.uint, np.uint8, np.uint16, np.uint32, np.uint64,
+                                np.float, np.float16, np.float32, np.float64, np.float128)
         pass
 
     def save_dict_to_hdf5(self, dic, filename):
@@ -62,12 +63,12 @@ class DataH5py:
             if isinstance(item, (int, np.unicode)):
                 item = str(item)
             if isinstance(item, self.supported_types):
-                if isinstance(item, np.ndarray):
-                        if isinstance(item[0], np.unicode):
-                            h5file.create_dataset('{}{}'.format(path, key),
-                                              data=np.array(item, dtype='S'))
-                        else:
-                            h5file['{}{}'.format(path, key)] = item
+                if isinstance(item, np.ndarray) and item.size > 1:
+                    if isinstance(item[0], np.unicode):
+                        h5file.create_dataset('{}{}'.format(path, key),
+                                          data=np.array(item, dtype='S'))
+                    else:
+                        h5file['{}{}'.format(path, key)] = item
                 else:
                     h5file['{}{}'.format(path, key)] = item
             elif isinstance(item, AverageMeter):
