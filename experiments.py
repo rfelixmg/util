@@ -213,9 +213,13 @@ def list_ids(x, shuffle=True):
     :return: 
     """
     dim_x = x.shape[0]
-    ids_ = np.array(range(dim_x))
+    # ids_ = np.array(range(dim_x))
+
     if shuffle:
-        np.random.shuffle(ids_)
+        ids_ = np.random.permutation(dim_x)
+    else:
+        ids_ = np.array(range(dim_x))
+
     return ids_, dim_x
 
 def garbage_checklist(checklist, cname, nmax=10, ctype='min', verbose=False):
