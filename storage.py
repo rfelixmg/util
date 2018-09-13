@@ -6,6 +6,8 @@ from util.experiments import AverageMeter
 class Json(object):
     def __init__(self):
         pass
+
+    @classmethod
     def save(self, obj, basefile, indent=4):
         '''
         Json().save dict structure as json file
@@ -26,6 +28,7 @@ class Json(object):
         with open(basefile, 'w') as out:
             dump(obj_, out, sort_keys=True, indent=indent)
 
+    @classmethod
     def load(self, basefile):
         '''
         Load json file as a dict
