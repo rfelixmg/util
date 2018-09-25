@@ -22,16 +22,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 def merge_array(x, y, axis=0):
-    import numpy as np
-    if np.shape(x)[0]:
-        if np.shape(y)[0]:
-            return np.concatenate([x,y], axis)
-        else:
-            return x
-    elif np.shape(y)[0]:
-        return y
+    from numpy import size,atleast_1d, concatenate
+    if not size(x):
+        return atleast_1d(y)
+    elif size(x) and size(y):
+        return concatenate([x, atleast_1d(y)], axis)
+    elif size(y):
+        return atleast_1d(y)
     else:
-        return np.array([])
+        return atleast_1d([])
 
 
 def normalize(x, ord=1,axis=-1):
