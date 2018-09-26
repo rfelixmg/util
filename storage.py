@@ -192,7 +192,13 @@ class Container(object):
         if dtype:
             return {dtype(key): dtype(value) for key, value in self.__dict__.items()}
         else:
-            return self.__dict__
+            ans = {}
+            for key, value in self.__dict__.items():
+                if isinstance(value, Container):
+                    ans[key] = value.as_dict()
+                else:
+                    ans[key] = value
+            return ans
 
     def keys(self):
         return list(self.__dict__.keys())

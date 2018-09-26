@@ -68,8 +68,7 @@ def list_directories(root, join=True):
                 folders.append('{}/{}'.format(root, fold))
             else:
                 folders.append(fold)
-
-    return sort(folders)
+    return list(sort(folders))
 
 def list_files(root, join=True, obj_type=None):
     import os

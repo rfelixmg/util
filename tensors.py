@@ -32,6 +32,16 @@ def merge_array(x, y, axis=0):
     else:
         return atleast_1d([])
 
+def merge_dict(x, y):
+    ans = {}
+    for _key in (x.keys() & y.keys()):
+        if isinstance(x[_key], dict):
+            ans[_key] = merge_dict(x[_key], y[_key])
+        else:
+            ans[_key] = merge_array(x[_key], y[_key])
+
+    return ans
+
 
 def normalize(x, ord=1,axis=-1):
     '''
