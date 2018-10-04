@@ -216,25 +216,83 @@ def hdf2mat(src_, dst_):
         savemat('{}/{}'.format(dst_, key), {key: data[key]})
 
 
+class Dict_Average_Meter(object):
+    def __init__(self):
+        pass
 
+    def as_dict(self):
+        return self.__dict__
 
+    def __set_dict__(self, data):
+        for key, value in data.items():
+            self.__dict__[key] = value
 
+    def get_meter(self, data):
+        if self.get_subparam(self.__dict__, data) is False:
+            self.set_meter(data)
+            return self.get_subparam(self.__dict__, data)
+        else:
+            return self.get_subparam(self.__dict__, data)
 
+    def get_subparam(self, tree, data):
+        levels = data.split('/')
+        if(len(levels) > 1):
+            if levels[0] in tree:
+                return self.get_subparam(tree[levels[0]], '/'.join(levels[1:]))
+            else:
+                return False
+        else:
+            if data in tree:
+                return tree[data]
+            else:
+                return False
+
+    def contains(self, namespace):
+        return namespace in self.__dict__
+
+    def set_meter(self, namespace):
+        levels = namespace.split('/')
+        last = len(levels)-1
+        tree = self.__dict__
+        for key, _level in enumerate(levels):
+            if _level in tree:
+                
+                if key != last:
+                    tree = tree[_level]
+                else:
+                    tree[_level] = AverageMeter()
+            else:
+                if key != last:
+                    tree[_level] = {}
+                    tree = tree[_level]
+                else:
+                    tree[_level] = AverageMeter()
+    
+    def set_param(self, namespace, data):
+        levels = namespace.split('/')
+        last = len(levels)-1
+        tree = self.__dict__
+        for key, _level in enumerate(levels):
+            if _level in tree:
+                
+                if key != last:
+                    tree = tree[_level]
+                else:
+                    tree[_level] = data
+
+            else:
+                if key != last:
+                    tree[_level] = {}
+                    tree = tree[_level]
+                else:
+                    tree[_level] =data
+
+    def update_meters(self, _base, data):
+        for key, item in data.items():
+            self.get_meter('{}/{}'.format(_base, key)).update(item)
 
 
 if __name__ == '__main__':
     print('-'*100)
     print(':: Testing file: {}'.format(__file__))
     print('-'*100)
-
-    # _dir = '/media/hdd_2tb/scientific/experiments/eccv18/cub/fclswgan/gan/batch_001/0000_TEST_070318_202809_batch_size-64/data'
-    # _dir = '/media/hdd_2tb/scientific/experiments/eccv18/flo/fclswgan/gan/batch_001/0000_TEST_150318_004004_batch_size-64/data'
-    _dir = '/media/hdd_2tb/scientific/experiments/eccv18/awa1/fclswgan/gan/batch_001/0000_TEST_220218_163913_batch_size-64/data'
-
-    hdf2mat('{}/data.h5'.format(_dir), _dir)
-
-    # data = DataH5py().load_dict_from_hdf5('/var/scientific/data/eccv18/awa1/data.h5')
-    # d = Container(data)
-    # print(d.keys())
-
-    # print(d.data.train)
