@@ -21,10 +21,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-def softmax(x):
-    import numpy as np
-    e_x = np.exp(x - np.max(x))
-    return e_x / e_x.sum(axis=0)
+def softmax(x, axis=0):
+    from numpy import exp
+    e_x = exp((x.T - x.max(axis)).T)
+    return (e_x.T / e_x.sum(axis=axis)).T
 
 def cross_entropy(y_prob,y):
     """
@@ -59,15 +59,19 @@ def scaler(x, rg=(0.,1.), seed=False):
 
 
 def accuracy_per_class(predict_label, true_label, classes):
-    '''
-    
-    :param predict_label: output of model 
-    :param true_label: labels from dataset
+    '''    
+    :param predict_label: output of model (matrix)
+    :param true_label: labels from dataset (array of integers)
     :param classes: class labels list() 
     :return: 
     '''
     from numpy import sum, float, array
-    nclass = len(classes)
+    if isinstance(classes, int):
+        nclass = classes
+        classes = range(nclass)
+    else:
+        nclass = len(classes)
+    
     acc_per_class = []
     for i in range(nclass):
         idx = true_label == classes[i]
@@ -75,6 +79,7 @@ def accuracy_per_class(predict_label, true_label, classes):
             acc_per_class.append(sum(true_label[idx] == predict_label[idx]) / float(idx.sum()))
     if len(acc_per_class) == 0:
         return 0.
+    
     return array(acc_per_class).mean()
 
 
@@ -158,7 +163,7 @@ def tf_pairwise_euclidean_distance(x, y):
 
 def entropy(x, axis=1):
     from numpy import sum, log2
-    return -sum(x* log2(x), axis)
+    return -sum(x * log2(x + 1e-9), axis)
 
 def sigmoid(x):
     import numpy as np
