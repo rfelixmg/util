@@ -161,9 +161,9 @@ def tf_pairwise_euclidean_distance(x, y):
     return square_dist
 
 
-def entropy(x, axis=1):
-    from numpy import sum, log2
-    return -sum(x * log2(x + 1e-9), axis)
+def entropy(x, axis=-1):
+    from numpy import sum, log2, abs
+    return abs(-sum(x * log2(x + 1e-9), axis))
 
 def sigmoid(x):
     import numpy as np
