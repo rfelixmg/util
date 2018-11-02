@@ -101,7 +101,9 @@ def load(root, dtype='h5py'):
         knn = DataH5py().load_dict_from_hdf5('{}/knn.h5'.format(root))
 
     dataset, knn = Container(dataset), Container(knn)
-    dataset.n_classes = knn.openset.ids.shape[0]
+    if 'n_classes' not in dataset.__dict__:
+        dataset.n_classes = knn.openset.ids.shape[0]
+
     dataset.root = '{}/data.h5'.format(root)
     knn.root = '{}/knn.h5'.format(root)
 
