@@ -233,6 +233,9 @@ class Dict_Average_Meter(object):
             return self.get_subparam(self.__dict__, data)
         else:
             return self.get_subparam(self.__dict__, data)
+    
+    def get_param(self, data):
+        return self.get_subparam(self.__dict__, data)
 
     def get_subparam(self, tree, data):
         levels = data.split('/')
