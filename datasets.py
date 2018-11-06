@@ -110,7 +110,7 @@ def load(root, dtype='h5py'):
     return dataset, knn
 
 
-def load_imagenet(root, dtype='h5py', benchmark=False):
+def load_imagenet(root, benchmark=False):
     """
     load dataset: load dataset and respective knn features for ImageNet
     :param root: directory for datasets
@@ -118,11 +118,9 @@ def load_imagenet(root, dtype='h5py', benchmark=False):
     :return: dataset, knn
     """
 
-    if dtype == 'h5py':
-        from util.storage import DataH5py, Container
-        # dataset = DataH5py().load_dict_from_hdf5('{}/train.h5'.format(root))
-        dataset = DataH5Loader('{}/datapoints/'.format(root))
-        knn = load_h5('{}/knn.h5'.format(root))
+    from util.storage import DataH5py, Container
+    dataset = DataH5Loader('{}/datapoints/'.format(root))
+    knn = load_h5('{}/knn.h5'.format(root))
 
     if benchmark is 'zsl':
         dataset.n_classes = knn.zsl.ids.shape[0]
