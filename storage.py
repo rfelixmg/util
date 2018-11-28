@@ -183,6 +183,7 @@ class Container(object):
             if isinstance(value, (list, tuple)):
                setattr(self, key, [Container(sub) if isinstance(sub, dict) else sub for sub in value])
             else:
+               print(key, value)
                setattr(self, key, Container(value) if isinstance(value, dict) else value)
 
     # def as_dict(self):
@@ -301,6 +302,9 @@ class Dict_Average_Meter(object):
 class DictContainer(object):
     def __init__(self):
         pass
+
+    def items(self):
+        return self.__dict__.items()
 
     def keys(self):
         return self.__dict__.keys()
