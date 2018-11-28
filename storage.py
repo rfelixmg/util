@@ -183,7 +183,6 @@ class Container(object):
             if isinstance(value, (list, tuple)):
                setattr(self, key, [Container(sub) if isinstance(sub, dict) else sub for sub in value])
             else:
-               print(key, value)
                setattr(self, key, Container(value) if isinstance(value, dict) else value)
 
     # def as_dict(self):
