@@ -124,7 +124,6 @@ def load_imagenet(root, benchmark=False):
 
     if benchmark is 'zsl':
         dataset.n_classes = knn.zsl.ids.shape[0]
-        # dataset.add_root(root_extra)
     elif benchmark:
         dataset.n_classes = knn.openset.ids.shape[0]
     else:

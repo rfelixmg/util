@@ -72,17 +72,17 @@ class DataH5py:
                                 np.float, np.float16, np.float32, np.float64, np.float128)
         pass
 
+    def save(self, dic, filename):
+        self.save_dict_to_hdf5(dic, filename)
+
+    def load(self, filename):
+        return self.load_dict_from_hdf5(filename)
+
     def save_dict_to_hdf5(self, dic, filename):
-        """
-        ....
-        """
         with h5py.File(filename, 'w') as h5file:
             self.recursively_save_dict_contents_to_group(h5file, '/', dic)
 
     def recursively_save_dict_contents_to_group(self, h5file, path, dic):
-        """
-        ....
-        """
         for key, item in dic.items():
             if isinstance(key, (int, np.unicode)):
                 key = str(key)
@@ -200,6 +200,9 @@ class Container(object):
                     ans[key] = value
             return ans
 
+    def get(self, key):
+        return self.__dict__[key]
+
     def keys(self):
         return list(self.__dict__.keys())
 
@@ -294,6 +297,58 @@ class Dict_Average_Meter(object):
         for key, item in data.items():
             self.get_meter('{}/{}'.format(_base, key)).update(item)
 
+
+class DictContainer(object):
+    def __init__(self):
+        pass
+
+    def keys(self):
+        return self.__dict__.keys()
+
+    def as_dict(self):
+        return self.__dict__
+
+    def __set_dict__(self, data):
+        for key, value in data.items():
+            self.__dict__[key] = value
+
+    def get_param(self, data):
+        return self.get_subparam(self.__dict__, data)
+
+    def get_subparam(self, tree, data):
+        levels = data.split('/')
+        if(len(levels) > 1):
+            if levels[0] in tree:
+                return self.get_subparam(tree[levels[0]], '/'.join(levels[1:]))
+            else:
+                return False
+        else:
+            if data in tree:
+                return tree[data]
+            else:
+                return False
+
+    def contains(self, namespace):
+        return namespace in self.__dict__
+
+    def set_param(self, namespace, data):
+        levels = namespace.split('/')
+        last = len(levels)-1
+        tree = self.__dict__
+        for key, _level in enumerate(levels):
+            if _level in tree:
+                
+                if key != last:
+                    tree = tree[_level]
+                else:
+                    tree[_level] = data
+
+            else:
+                if key != last:
+                    tree[_level] = {}
+                    tree = tree[_level]
+                else:
+                    tree[_level] = data
 
 if __name__ == '__main__':
     print('-'*100)
