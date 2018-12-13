@@ -82,10 +82,6 @@ class DataH5Loader:
     def __len__(self):
         return self.nfiles
 
-# cr = CustomRange(0, 10)
-# for i in cr:
-#     print(i)
-
 
 def load(root, dtype='h5py'):
     """
