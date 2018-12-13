@@ -14,7 +14,7 @@ class ImageLoader(object):
             ...
             /class_0C/img_00cc.jpg
     '''
-    def __init__(self, root, batch_size=512, shuffle=False, is_training=False, resize_min=256):
+    def __init__(self, root, batch_size=64, shuffle=False, is_training=False, resize_min=256):
         self.root = root
         self.shuffle = shuffle
         self.batch_size = batch_size
@@ -117,15 +117,14 @@ class ImageLoader(object):
     def _mean_image_subtraction(self, img, _means=[123.68, 116.78, 103.94]):
         return img - _means            
 
-    def _load_instance_(self, data):
+    def _load_instance_(self, impath):
         from skimage import io
         try:
-            _img = self._resize_scale(io.imread(data[1]))
+            _img = self._resize_scale(io.imread(impath))
             _img = self._central_crop(_img)
             _img = self._mean_image_subtraction(_img)
-            return (_img, *data)
+            return _img
         except Exception as e:
-            print(data)
             raise e
             
     def sample(self, idx=False):
@@ -134,7 +133,7 @@ class ImageLoader(object):
             _data = self.dataset(idx)
         else:
             _data = self.dataset(randint(0,self.nfiles))
-        return self._load_instance_(_data)
+        return [self._load_instance_(_data[1]), *_data]
     
     def __getitem__(self, item):
         if item >= len(self):
@@ -147,12 +146,17 @@ class ImageLoader(object):
     def __len__(self):
         return self.nfiles
     
+    def __iter__(self):
+        return self
+
     def __next__(self):
         '''
-        [x, y,folder,fname]
+            [x, y,folder,fname]
         '''
         from numpy import arange, array
         for _id in arange(0, self.nfiles, self.batch_size):
             _data = self._dataset[_id:(_id+self.batch_size)]
-            _data = array([self._load_instance_(_instance) for _instance in _data])
-            return (_data[:,0], _data[:,1], _data[:,3], _data[:,2])
+            _imgs = array([self._load_instance_(_instance[1]) for _instance in _data])
+            _data = array(_data)
+
+            return (_imgs, _data[:,0], _data[:,2], _data[:,1])
