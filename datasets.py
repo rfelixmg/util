@@ -201,3 +201,60 @@ def join_datasets(dataset, datafake, val_split=0.):
     dataset.n_classes = np.max([dataset.test.seen.Y.max(), dataset.test.unseen.Y.max()])
 
     return dataset
+
+
+class DatasetDict(object):
+    def __init__(self):
+        self._keys_ = []
+        
+    def __repr__(self):
+        return str(self.getdata())
+
+    def __dir__(self):
+        return self.keys()
+
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(key)
+
+    def as_dict(self):
+        return {key: self.__dict__[key] for key in self._keys_}
+
+    def getitem(self, key):
+        return self.__dict__[key]
+            
+    def merge_array(self, x, y, axis=0):
+        from numpy import size,atleast_1d, concatenate
+        if not size(x):
+            return atleast_1d(y)
+        elif size(x) and size(y):
+            return concatenate([x, atleast_1d(y)], axis)
+        elif size(y):
+            return atleast_1d(y)
+        else:
+            return atleast_1d([])
+
+    def set(self, key, data=False):
+        from numpy import array
+        if not isinstance(data, bool):
+            self.__dict__[key] = data
+        else:
+            self.__dict__[key] = array([])
+        self._keys_.append(key)
+
+    def append(self, key, data):
+        if key in self.__dict__:
+            self.__dict__[key] = self.merge_array(self.getitem(key), data)
+        else:
+            self.set(key, data)
+    
+    def data(self):
+        return self.getdata()
+    
+    def getdata(self):
+        return {key: self.__dict__[key] for key in self._keys_}
+    
+    def __call__(self):
+        return self.getdata()

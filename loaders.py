@@ -20,6 +20,17 @@ class ImageLoader(object):
         self.batch_size = batch_size
 
         self.__setup__()
+
+    def info(self):
+        return {'root': self.root,
+                'number_files:': self.nfiles,
+                'shuffle': int(self.shuffle)}
+
+    def __repr__(self):
+        return 'Image loader: {} \n' \
+        'number files: {}\n' \
+        'batch size: {}\n '\
+        'shuffle: {}\n'.format(self.root, self.nfiles, self.batch_size, self.shuffle) 
         
 
     def _list_files_(self, root, join=True, obj_type=['jpeg', 'jpg', 'png']):
@@ -145,13 +156,37 @@ class ImageLoader(object):
 
     def __len__(self):
         return self.nfiles
-    
-    def __iter__(self):
-        return self
 
-    def __next__(self):
+    def len(self):
+        return int(self.nfiles / self.batch_size)
+            
+    def get_batch(self, _start, _end=False):
         '''
-            [x, y,folder,fname]
+            @return:
+                return (images [numpy], ground_truth [y], label [str], filename [str])
+        '''
+        from numpy import arange, array
+
+        if _end:
+            assert _start < _end
+            assert _end < self.len()
+        else:
+            _end = self.len()
+
+        for _b in arange(_start, _end):
+            _st = _b * self.batch_size
+            _ed = _st + self.batch_size
+
+            _data = self._dataset[_st:_ed]
+            _imgs = array([self._load_instance_(_instance[1]) for _instance in _data])
+            _data = array(_data)
+
+            yield (_imgs, _data[:,0], _data[:,2], _data[:,1])
+
+    def __iter__(self):
+        '''
+            @return:
+                return (images [numpy], ground_truth [y], label [str], filename [str])
         '''
         from numpy import arange, array
         for _id in arange(0, self.nfiles, self.batch_size):
@@ -159,4 +194,4 @@ class ImageLoader(object):
             _imgs = array([self._load_instance_(_instance[1]) for _instance in _data])
             _data = array(_data)
 
-            return (_imgs, _data[:,0], _data[:,2], _data[:,1])
+            yield (_imgs, _data[:,0], _data[:,2], _data[:,1])
