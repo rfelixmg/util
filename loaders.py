@@ -14,10 +14,12 @@ class ImageLoader(object):
             ...
             /class_0C/img_00cc.jpg
     '''
-    def __init__(self, root, batch_size=64, shuffle=False, is_training=False, resize_min=256):
+    def __init__(self, root, batch_size=64, shuffle=False, is_training=False, resize_min=256, crop=(224,224)):
         self.root = root
         self.shuffle = shuffle
         self.batch_size = batch_size
+        self.resize_min=resize_min
+        self.crop=crop
 
         self.__setup__()
 
@@ -103,27 +105,27 @@ class ImageLoader(object):
             shuffle(_idx)
             self._dataset = self._dataset[_idx]
 
-    def _resize_scale(self, img, resize_min=256, _channels=3):
+    def _resize_scale(self, img, _channels=3):
         from numpy import min, array
         from skimage.transform import resize
         _h, _w = img.shape[0:2]
         smaller_dim = min([_h,_w])
-        scale_ratio = resize_min / smaller_dim
+        scale_ratio = self.resize_min / smaller_dim
         _newh, _neww = (int(scale_ratio * _h), int(scale_ratio * _w))
         if len(img.shape) == 2:
             img = img[:,:,None].repeat(_channels, axis=-1)
             
         return resize(img, (_newh,_neww), mode='symmetric', preserve_range=True)
 
-    def _central_crop(self, img, crop=(224,224)):
+    def _central_crop(self, img):
         _h, _w = img.shape[0:2]    
-        amount_to_be_cropped_h = (_h - crop[0])
+        amount_to_be_cropped_h = (_h - self.crop[0])
         crop_top = amount_to_be_cropped_h // 2
 
-        amount_to_be_cropped_w = (_w - crop[1])
+        amount_to_be_cropped_w = (_w - self.crop[1])
         crop_left = amount_to_be_cropped_w // 2
 
-        return img[crop_top:crop_top+crop[0], crop_left:crop_left+crop[1], :]
+        return img[crop_top:crop_top+self.crop[0], crop_left:crop_left+self.crop[1], :]
 
     def _mean_image_subtraction(self, img, _means=[123.68, 116.78, 103.94]):
         return img - _means            
