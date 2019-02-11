@@ -20,8 +20,8 @@ class ImageLoader(object):
         self.batch_size = batch_size
         self.resize_min=resize_min
         self.crop=crop
-
-        self.__setup__()
+        if root is not None:
+            self.__setup__()
 
     def info(self):
         return {'root': self.root,
