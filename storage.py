@@ -23,7 +23,7 @@ SOFTWARE.
 """
 import h5py
 import numpy as np
-from util.experiments import AverageMeter
+from .experiments import AverageMeter
 
 
 class Json(object):
@@ -223,9 +223,28 @@ class Dict_Average_Meter(object):
     def __init__(self):
         pass
 
-    def as_dict(self):
-        return self.__dict__
+    def __repr__(self):
+        return str(self.as_dict())
 
+    
+    def __str__(self):
+        return str(self.as_dict())
+
+    def as_dict(self, wobj=False):
+        def build_print(_data):
+            _dict = {}
+            for key, item in _data.items():
+                if isinstance(item, dict):
+                    _dict[key] = build_print(item)
+                elif isinstance(item, AverageMeter):
+                    _dict[key] = item.get_list()
+            return _dict
+        
+        if wobj:
+            return self.__dict__
+        else:
+            return build_print(self.__dict__)
+    
     def __set_dict__(self, data):
         for key, value in data.items():
             self.__dict__[key] = value
