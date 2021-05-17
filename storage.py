@@ -221,6 +221,8 @@ def hdf2mat(src_, dst_):
 
 class Dict_Average_Meter(object):
     def __init__(self):
+        
+        self.__flatten_dict__ = {}
         pass
 
     def __repr__(self):
@@ -230,7 +232,7 @@ class Dict_Average_Meter(object):
     def __str__(self):
         return str(self.as_dict())
 
-    def as_dict(self, wobj=False):
+    def as_dict(self, wobj=False, flatten=False):
         def build_print(_data):
             _dict = {}
             for key, item in _data.items():
@@ -240,8 +242,23 @@ class Dict_Average_Meter(object):
                     _dict[key] = item.get_list()
             return _dict
         
+        def build_flatten(_data, _key):
+            if not _key:
+                _key = '{}'
+            else:
+                _key += '_{}'
+                
+            for key, item in _data.items():
+                if isinstance(item, dict):
+                    build_flatten(item, _key.format(key))
+                elif isinstance(item, AverageMeter):
+                    self.__flatten_dict__[_key.format(key)]  = item.get_list()
         if wobj:
             return self.__dict__
+        elif flatten:
+            self.__flatten_dict__ = {}
+            build_flatten(self.__dict__, False)
+            return self.__flatten_dict__
         else:
             return build_print(self.__dict__)
     
