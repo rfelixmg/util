@@ -138,6 +138,8 @@ class AverageMeter(object):
         self.list = [0.]
         self.flag = True
 
+    def get_iter(self, itr=-1):
+        return self.list[itr]
 
     def value(self):
         return self.val

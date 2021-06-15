@@ -24,7 +24,7 @@ SOFTWARE.
 import h5py
 import numpy as np
 from .experiments import AverageMeter
-
+from .tensors import NpJSONEncoder
 
 class Json(object):
     def __init__(self):
@@ -221,10 +221,23 @@ def hdf2mat(src_, dst_):
 
 class Dict_Average_Meter(object):
     def __init__(self):
-        
-        self.__flatten_dict__ = {}
         pass
 
+    def save(self, fname, save_type='json', flatten=False):
+        
+        if save_type == 'json':
+            import json
+            with open(fname, 'w') as fp:
+                fp.write(json.dumps(self.as_dict(flatten=flatten), 
+                                    cls=NpJSONEncoder,
+                                    indent=4))
+                
+        elif save_type == 'h5py':
+            DataH5py().save_dict_to_hdf5(dic=self.as_dict(wobj=True), 
+                                         filename=fname)
+            
+        
+    
     def __repr__(self):
         return str(self.as_dict())
 
@@ -232,7 +245,30 @@ class Dict_Average_Meter(object):
     def __str__(self):
         return str(self.as_dict())
 
+    def get_iter(self, itr=-1, flatten=True, single_1d=True):
+        _out = {}
+        def build_flatten(_data, _key=False):
+            if not _key:
+                _key = '{}'
+            else:
+                _key += '_{}'
+                
+            for key, item in _data.items():
+                if isinstance(item, dict):
+                    build_flatten(item, _key.format(key))
+                elif isinstance(item, AverageMeter):
+                    if single_1d:
+                        if np.array(item.get_iter(itr)).size == 1:
+                            _out[_key.format(key)]  = item.get_iter(itr) 
+                    else:
+                        _out[_key.format(key)]  = np.array(item.get_iter(itr))
+                        
+        build_flatten(self.__dict__)
+        return _out
+                    
+                    
     def as_dict(self, wobj=False, flatten=False):
+        __flatten_dict__ = {}
         def build_print(_data):
             _dict = {}
             for key, item in _data.items():
@@ -252,13 +288,12 @@ class Dict_Average_Meter(object):
                 if isinstance(item, dict):
                     build_flatten(item, _key.format(key))
                 elif isinstance(item, AverageMeter):
-                    self.__flatten_dict__[_key.format(key)]  = item.get_list()
+                    __flatten_dict__[_key.format(key)]  = item.get_list()
         if wobj:
             return self.__dict__
         elif flatten:
-            self.__flatten_dict__ = {}
             build_flatten(self.__dict__, False)
-            return self.__flatten_dict__
+            return __flatten_dict__
         else:
             return build_print(self.__dict__)
     
